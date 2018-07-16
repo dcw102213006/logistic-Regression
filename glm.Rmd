@@ -52,8 +52,8 @@ points(0,0.5,pch=20,cex=1.5,col='red')
 ```
 
 【**Q**】What are the definiion of `logit` & `logistic function`? What is the relationship between them?
-A:logit:log(p/1-p)
-  logistic function:
+A:logit:f(x),ln(odd),ln(p/(1-p))	+A:logit:log(p/1-p)
+  logistic function 把logit變成odd
 
 
 
