@@ -83,8 +83,10 @@ c(logit=logit, odd=odd, prob=prob)
 
 【**Q**】What if `OfficeVisits=2, Narcotics=3`?
 ```{r}
-#
-#
+logit = sum(b * c(1, 2, 3))
+odd = exp(logit)
+prob = odd/(1+odd)
+c(logit=logit, odd=odd, prob=prob)
 ```
 
 We can plot the line of `logit = 0` or `prob = 0.5` on the plane of $X$
@@ -92,6 +94,7 @@ We can plot the line of `logit = 0` or `prob = 0.5` on the plane of $X$
 par(cex=0.8)
 plot(Q$OfficeVisits, Q$Narcotics, col=1+Q$PoorCare,pch=20)
 abline(-b[1]/b[3], -b[2]/b[3])
+
 ```
 
 Furthermore, we can translate probability, logit and coefficents to intercept & slope ...
@@ -173,8 +176,8 @@ DPP2(pred = c(rnorm(N1,0.125,0.03), rnorm(N2,0.375,0.03)),
 【**Q**】Is it possible to have `AUC = ACC = SENS = SPEC = 1`? Can you modify the code to make it happen?
 
 ```{r fig.width=8, fig.height=2.5}
-# 
-# 
+
+print('changed')
 ```
 
 
