@@ -52,8 +52,11 @@ points(0,0.5,pch=20,cex=1.5,col='red')
 ```
 
 【**Q**】What are the definiion of `logit` & `logistic function`? What is the relationship between them?
-logit:f(x),ln(odd),ln(p/(1-p))
-logistic function 把logit變成odd
+A:logit:log(p/1-p)
+  logistic function:
+
+
+
 
 <br>
 
@@ -64,7 +67,8 @@ logistic function 把logit變成odd
 `glm()`的功能：在 $\{x\}$ 的空間之中，找出區隔 $y$ 的(類別)界線
 
 ```{r}
-Q = read.csv("data/quality.csv")  # Read in dataset
+getwd()
+Q = read.csv("./data/quality.csv")  # Read in dataset
 glm1 = glm(PoorCare~OfficeVisits+Narcotics, Q, family=binomial)
 summary(glm1)
 ```
@@ -79,6 +83,7 @@ logit = sum(b * c(1, 3, 4))
 odd = exp(logit)
 prob = odd/(1+odd)
 c(logit=logit, odd=odd, prob=prob)
+
 ```
 
 【**Q**】What if `OfficeVisits=2, Narcotics=3`?
@@ -87,6 +92,7 @@ logit = sum(b * c(1, 2, 3))
 odd = exp(logit)
 prob = odd/(1+odd)
 c(logit=logit, odd=odd, prob=prob)
+
 ```
 
 We can plot the line of `logit = 0` or `prob = 0.5` on the plane of $X$
@@ -94,7 +100,6 @@ We can plot the line of `logit = 0` or `prob = 0.5` on the plane of $X$
 par(cex=0.8)
 plot(Q$OfficeVisits, Q$Narcotics, col=1+Q$PoorCare,pch=20)
 abline(-b[1]/b[3], -b[2]/b[3])
-
 ```
 
 Furthermore, we can translate probability, logit and coefficents to intercept & slope ...
@@ -118,8 +123,14 @@ for(g in logit) {
 ```
 
 【**Q**】What do the blue/cyan lines means?
+A:機率為0.1~0.9的線
+
+
 
 【**Q**】Given any point in the figure above, how can you tell its (predicted) probability approximately?
+A:我們可以畫一條機率為0.5的線，
+點若位在線的右方機率>0.5
+位於線的左方機率<0.5
 
 <br>
 
@@ -176,16 +187,23 @@ DPP2(pred = c(rnorm(N1,0.125,0.03), rnorm(N2,0.375,0.03)),
 【**Q**】Is it possible to have `AUC = ACC = SENS = SPEC = 1`? Can you modify the code to make it happen?
 
 ```{r fig.width=8, fig.height=2.5}
+N1 = 300; N2 = 100
+DPP2(pred = c(rnorm(N1,0.1,0.03), rnorm(N2,0.6,0.03)),
+     class = c(rep('B',N1), rep('A',N2)), 
+     tvalue = 'A')
 
-print('changed')
+
 ```
 
 
 【**Q**】Is it possible to have `AUC = ACC = SENS = SPEC = 0`? Can you modify the code to make that happen?
 
+A:AUC不可能<0.5,Acc、Sens、Spec可以是0
 ```{r fig.width=8, fig.height=2.5}
-# 
-# 
+N1 = 300; N2 = 100
+DPP2(pred = c(rnorm(N1,0.8,0.03), rnorm(N2,0.2,0.03)),
+     class = c(rep('B',N1), rep('A',N2)), 
+     tvalue = 'A')
 ```
 <br>
 
@@ -222,6 +240,7 @@ c(accuracy = sum(diag(mx))/sum(mx),
 
 #### E4: ROC & AUC
 ```{r fig.width=5, fig.height=5}
+#install.packages('ROCR')
 library(ROCR)
 ROCRpred = prediction(pred, TR$PoorCare)
 ROCRperf = performance(ROCRpred, "tpr", "fpr")
@@ -245,7 +264,7 @@ source("DPP.R")
 
 #### F1: Reading & Splitting
 ```{r}
-F = read.csv("data/framingham.csv")
+F = read.csv("./data/framingham.csv")
 set.seed(1000)
 split = sample.split(F$TenYearCHD, SplitRatio = 0.65)
 TR = subset(F, split==TRUE)
@@ -285,30 +304,94 @@ auc = DPP(pred, y, 1, b=seq(0,1,0.02))  # 0.74211
 ```{r fig.width=5, fig.height=4}
 payoff = matrix(c(0,-100,-10,-60),2,2) 
 cutoff = seq(0.02, 0.64, 0.01)
+
 result = sapply(cutoff, function(p) sum(table(y,pred>p)*payoff) )
+
+
 i = which.max(result)
 par(cex=0.7)
 plot(cutoff, result, type='l', col='cyan', lwd=2, main=sprintf(
   "Optomal Expected Result: $%d @ %.2f",result[i],cutoff[i]))
 abline(v=seq(0,1,0.05),h=seq(-23000,-17000,500),col='lightgray',lty=3)
 abline(v=cutoff[i],col='red')
+
+
 ```
 
 【**Q**】如果什麼都不做，期望報酬是多少？
+```{r}
+payoff = matrix(c(0,-100,-10,-60),2,2) 
+cutoff = seq(0.02, 0.7296, 0.01)
+
+
+result = sapply(cutoff, function(p) sum(table(y,pred>p)*payoff) )
+
+
+i = 71
+par(cex=0.9)
+plot(cutoff, result, type='l', col='cyan', lwd=2, main=sprintf(
+  "Optomal Expected Result: $%d @ %.2f",result[i],cutoff[i]))
+abline(v=seq(0,1,0.05),h=seq(-23000,-17000,500),col='lightgray',lty=3)
+abline(v=0.7,col='red')
+
+
+```
 
 【**Q**】如果每位病人都做呢？
+```{r}
+payoff = matrix(c(0,-100,-10,-60),2,2) 
+cutoff = seq(0.02, 0.7296, 0.01)
+
+
+
+
+result = sapply(cutoff, function(p) sum(table(y,pred>p)*payoff) )
+
+
+i = 1
+par(cex=0.9)
+plot(cutoff, result, type='l', col='cyan', lwd=2, main=sprintf(
+  "Optomal Expected Result: $%d @ %.2f",result[i],cutoff[i]))
+abline(v=seq(0,1,0.05),h=seq(-23000,-17000,500),col='lightgray',lty=3)
+abline(v=0.02,col='red')
+
+```
 
 【**Q**】以上哪一種做法期望報酬比較高？
+全不做比較好，期望值是-19810，比全做還高
 
 【**Q**】在所有的商務情境都是這種狀況嗎？
+不是
 
 【**Q**】你可以模擬出「全做」比「全不做」還要好的狀況、並舉出一個會發生這種狀況的商務情境嗎？
 
+投資新創公司
+投資失敗不會賠太多成本
+投資成功可能賺很多回來
+payoff:
+     [,1] [,2]
+[1,]    0  -10
+[2,]    0  100
+
+
 
 ```{r}
-#
-#
-#
+payoff = matrix(c(0,0,-10,100),2,2) 
+
+cutoff = seq(0.02, 0.7296, 0.01)
+
+
+
+
+result = sapply(cutoff, function(p) sum(table(y,pred>p)*payoff) )
+
+
+i = 1
+par(cex=0.9)
+plot(cutoff, result, type='l', col='cyan', lwd=2, main=sprintf(
+  "Optomal Expected Result: $%d @ %.2f",result[i],cutoff[i]))
+abline(v=seq(0,1,0.05),h=seq(-23000,-17000,500),col='lightgray',lty=3)
+abline(v=0.02,col='red')
 ```
 
 <br>
@@ -341,12 +424,36 @@ par(p0)
 
 
 【**Q**】有五種成本分別為 `$5, $10, $15, $20, $30` 的藥，它們分別可以將風險成本從 `$100` 降低到 `$70, $60, $50, $40, $25`，哪一種藥的期望效益是最大的呢？
+```{r}
+payoff = matrix(c(0,-100,-5,-70),2,2) 
+cutoff = seq(0.02, 0.7296, 0.01)
+
+table(y,pred>0.02) 
+sum(table(y,pred>0.02)*payoff)
+sum(table(y,pred>0.03)*payoff)
+class(result)
+
+
+result = sapply(cutoff, function(p) sum(table(y,pred>p)*payoff) )
+
+
+i = which.max(result)
+par(cex=0.9)
+plot(cutoff, result, type='l', col='cyan', lwd=2, main=sprintf(
+  "Optomal Expected Result: $%d @ %.2f",result[i],cutoff[i]))
+abline(v=seq(0,1,0.05),h=seq(-23000,-17000,500),col='lightgray',lty=3)
+abline(v=0.14,col='red')
+
+```
 
 
 ```{r}
-#
-#
-#
+# (5,70) -17415, 0.14
+# (10,60) -17500, 0.2
+# (15,50) -17450,0.2
+# (20,40) -17400, 0.2
+# (30,25) -17655, 0.22
+print('第五種')
 ```
 
 <br>
